@@ -76,6 +76,7 @@ func dumpMetricsFromFamilies(metricFamilies map[string]*dto.MetricFamily) {
 				Help: metricFamily.GetHelp(),
 			}, labelKeys)
 		default:
+			fmt.Printf("unsupport type: %s\n", tye)
 		}
 	}
 }
