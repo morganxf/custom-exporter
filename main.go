@@ -26,9 +26,10 @@ const (
 
 var (
 	addr      = flag.String("listen-address", ":9200", "The address to listen on for HTTP requests.")
-	metricNum = flag.Int("metrics", 100, "The number of metrics")
-	labelNum  = flag.Int("labels", 2, "The number of custom labels")
+	metricNum = flag.Int("metrics", 0, "The number of metrics")
+	labelNum  = flag.Int("labels", 0, "The number of custom labels")
 	interval  = flag.Duration("interval", 1*time.Second, "The interval for updating metrics")
+	filename  = flag.String("file", "", "The source metrics file.")
 )
 
 var (
@@ -53,11 +54,24 @@ func init() {
 func main() {
 	flag.Parse()
 
-	// 20 = 4 + 7 + 9
-	num := (*metricNum) / 20
-	initPromRegister(num, *labelNum)
+	// load metrics from text file
+	if *filename != "" {
+		fmt.Printf("init metrics from file: %s\n", *filename)
+		initMetricsFromFile(*filename)
+	}
 
-	go Run(*interval, num, *labelNum)
+	if *metricNum > 0 && *labelNum > 0 {
+		if *metricNum < 20 {
+			*metricNum = 20
+			fmt.Printf("minimum metricsNum: %d\n", 20)
+		}
+		fmt.Printf("generate metrics with metricsNum=%d, labelNum=%d\n", *metricNum, *labelNum)
+		// 20 = 4 + 7 + 9
+		num := (*metricNum) / 20
+		initPromRegister(num, *labelNum)
+
+		go Run(*interval, num, *labelNum)
+	}
 
 	http.Handle("/metrics", promhttp.Handler())
 	go http.ListenAndServe(*addr, nil)
@@ -151,7 +165,7 @@ func NewCounterVecWithNum(labelNum int) *prometheus.CounterVec {
 	labelNames := newLabelNames(labelNum)
 	counter := prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: DefaultNamespace,
-		Subsystem: DefaultNamespace,
+		Subsystem: DefaultSubsystem,
 		Name:      "request_total",
 		Help:      "The total number of requests",
 	}, labelNames)

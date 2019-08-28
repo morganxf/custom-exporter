@@ -1,0 +1,4 @@
+# HELP test_memory_usage_bytes The usage bytes of the memory
+# TYPE test_memory_usage_bytes gauge
+test_memory_usage_bytes{repo="custom-exporter",key1="value10"} 8.147136828487167
+test_memory_usage_bytes{repo="custom-exporter",key1="value11"} 8.147136828487167
